@@ -23,5 +23,9 @@ Write in terminal:
 Site will run on localhost: http://127.0.0.1:8000
 
 Swagger: http://127.0.0.1:8000/docs#/default
+
+![image](https://user-images.githubusercontent.com/65871712/235453182-ed655572-a054-4889-8211-d3d092222bde.png)
+
 Redoc: http://127.0.0.1:8000/redoc
 
+![image](https://user-images.githubusercontent.com/65871712/235453271-592a534e-dfc5-409c-bdf2-e9b81f783eed.png)
