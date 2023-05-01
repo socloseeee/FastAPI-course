@@ -6,8 +6,7 @@
 ##### 1.1.  [Documentation and site adress ](#doc)
 ##### 2. [Endpoints](#second_lesson)
 ##### 3. [Data Validation](#third_lesson)
-
----
+##### 4. [Data base and migrations](#fourth_lesson)
 
 ## Lessons:
 
@@ -175,7 +174,7 @@ class Trade(BaseModel):
     price: float
     amount: float
 ```
-Now if we try to enter wrong value to POST-method:
+Now if we try to enter wrong value in JSON to POST-method, for example int field "amount" set str type value:
 ```json
 [
   {
@@ -188,7 +187,7 @@ Now if we try to enter wrong value to POST-method:
   }
 ]
 ```
-We see such json-response:
+We'll see such JSON-response:
 ```json
 {
   "detail": [
@@ -204,7 +203,7 @@ We see such json-response:
   ]
 }
 ```
-But if for example user enter negative price response will be given without errors to avoid this we should import Field and write smth like this:
+But if user enter negative price response will be given without errors to avoid this we should import Field and write smth like this:
 ```python
 class Trade(BaseModel):
     """
@@ -354,4 +353,6 @@ def add_trade(trades: List[Trade]):
     fake_trades.extend(trades)
     return {"status": 200, "data": fake_trades}
 ```
+### 4. Data base and migrations
+
 ---
