@@ -166,7 +166,7 @@ Also data validation provides good documentation issues
 
 ![image](https://user-images.githubusercontent.com/65871712/235636652-1a53b1a7-9eeb-4675-86c6-c46b13ed8fe8.png)
 
-To resolve this problem we should use Pydantic library:
+To resolve problem with wrong data and add good documentation we should use Pydantic library:
 ```python
 from pydantic.main import BaseModel 
 
