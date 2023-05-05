@@ -416,11 +416,11 @@ Open pgadmin4.
 
 Register server:
 
-![img.png](img.png)
+![img](https://user-images.githubusercontent.com/65871712/236534772-cf74176d-f781-40c3-a155-b735e139581a.png)
 
 Password: "postgres":
 
-![img_1.png](img_1.png)
+![img_1](https://user-images.githubusercontent.com/65871712/236534750-da932863-4b69-464b-80b5-3aae0d3f24b6.png)
 
 Create directory and file *project*/models/models.py:
 
@@ -557,8 +557,10 @@ alembic upgrade da2635964449
 
 Find our db named "postgres" in pgadmin4 and choose alembic_version to do the next query:
 
-![img_2.png](img_2.png)
+![img_2](https://user-images.githubusercontent.com/65871712/236534694-ca509ef4-bde8-4a07-af21-0d7be410ea1c.png)
 
 Refresh tables and now we see 3 tables insted of 1. Well done!
 
----![img_3.png](img_3.png)
+![img_3](https://user-images.githubusercontent.com/65871712/236534669-466a06d6-3fdc-498b-a83f-3229a0c35f85.png)
+
+---
