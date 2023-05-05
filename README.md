@@ -357,7 +357,7 @@ def add_trade(trades: List[Trade]):
     fake_trades.extend(trades)
     return {"status": 200, "data": fake_trades}
 ```
-### 4. Data base and migrations<a name="fourth_lesson"></a>
+### 4. <a name="fourth_lesson"></a>
 
 First install sqlalchemy lib to work with sql db:
 
