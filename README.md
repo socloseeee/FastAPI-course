@@ -995,7 +995,7 @@ Now when we'll try to login we'll see such a cookie after successful login:
 ![img_7.png](img_7.png)
 ![img_6.png](img_6.png)
 
-<a name = "protected_endpoint""></a>
+<a name = "protected_endpoint"></a>
 We'll add inside of our main.py file two GET-methods:
 
 ```python
@@ -1020,6 +1020,6 @@ But if we delete cookie we'll see:
 ![img_10.png](img_10.png)
 ![img_11.png](img_11.png)
 
-### 3. Routers and file structure.<a name = "routers_and_files"></a>
+### 6. Routers and file structure.<a name = "routers_and_files"></a>
 
 ---
