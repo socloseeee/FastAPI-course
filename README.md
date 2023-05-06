@@ -594,7 +594,7 @@ Refresh tables and now we see 3 tables insted of 1. Well done!
 
 Let's look at ways of keeping token:
 
-![img.png](img.png)
+![img](https://user-images.githubusercontent.com/65871712/236630974-7a6b9150-c860-407f-a018-58b3b345bec3.png)
 
 All we need to know is:
 
@@ -797,7 +797,7 @@ uvicorn main:app --reload
 We'll see that parameters from the first func will be all other funcs where we set Depends func and give inside of it 
 as argument name of func from which we want to take our parameters.
 
-![img_1.png](img_1.png)
+![img_1](https://user-images.githubusercontent.com/65871712/236631004-3d3c0238-2af7-4ad6-9182-fa16a189acd7.png)
 
 <a name = "cookie+jwt"></a>
 To set cookie storage and JWT we have to create auth.py file in /project/auth/auth.py:
@@ -911,7 +911,7 @@ app.include_router(
 ```
 
 And in documentation we'll see:
-![img_2.png](img_2.png)
+![img_2](https://user-images.githubusercontent.com/65871712/236631035-c6938944-52db-49c1-a8f4-ee2350f152fb.png)
 
 <a name = "roles"></a>
 Next step is to create roles in role table inside pgadmin using query tools:
@@ -987,13 +987,13 @@ async def get_user_manager(user_db=Depends(get_user_db)):
 <a name = "reg_log"></a>
 Now when we are gonna try to register user we'll succesfully do this:
 
-![img_3.png](img_3.png)
-![img_4.png](img_4.png)
-![img_5.png](img_5.png)
+![img_3](https://user-images.githubusercontent.com/65871712/236631045-d48c962a-d08d-4017-9532-b4966d145758.png)
+![img_4](https://user-images.githubusercontent.com/65871712/236631049-31721d54-cd6b-45c9-91a7-ba0ad596a3de.png)
+![img_5](https://user-images.githubusercontent.com/65871712/236631052-372d61a1-234c-4746-b520-f44874cebdba.png)
 
 Now when we'll try to login we'll see such a cookie after successful login:
-![img_7.png](img_7.png)
-![img_6.png](img_6.png)
+![img_7](https://user-images.githubusercontent.com/65871712/236631059-46be7395-c501-4fc9-8221-62db059d0bb6.png)
+![img_6](https://user-images.githubusercontent.com/65871712/236631056-b27566b8-a368-4aae-adb4-97260dc6cd3d.png)
 
 <a name = "protected_endpoint"></a>
 We'll add inside of our main.py file two GET-methods:
@@ -1012,13 +1012,13 @@ def unprotected_route():
 
 And test them to see difference:
 
-![img_8.png](img_8.png)
-![img_9.png](img_9.png)
+![img_8](https://user-images.githubusercontent.com/65871712/236631065-2edf403d-c0f7-4af1-ae08-d4d7998e8711.png)
+![img_9](https://user-images.githubusercontent.com/65871712/236631068-cd527480-a8b4-4bcd-89d1-8759b6338884.png)
 
 But if we delete cookie we'll see:
 
-![img_10.png](img_10.png)
-![img_11.png](img_11.png)
+![img_10](https://user-images.githubusercontent.com/65871712/236631075-8a4b22c9-acbd-4f59-b56d-38ef89d2412c.png)
+![img_11](https://user-images.githubusercontent.com/65871712/236631079-5ff78022-0791-44c0-bc33-4a66b2c4301f.png)
 
 ### 6. Routers and file structure.<a name = "routers_and_files"></a>
 
