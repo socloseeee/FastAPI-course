@@ -1,12 +1,28 @@
 # FastAPI-course
 
-### Navigation:
+## Navigation:
+
 
 ##### 1. [Installation and start](#first_lesson)
-##### 1.1.  [Documentation and site adress ](#doc)
+* 1.1.  [Documentation and site adress](#doc)
 ##### 2. [Endpoints](#second_lesson)
+* 2.1. [GET-method by id(Primary Key)](#by_id)
+* 2.2. [GET-method by query-parameters](#query)
+* 2.3. [POST-method to change username](#post)
 ##### 3. [Data Validation](#third_lesson)
+* 3.1. [Using of 'response_model' argument in GET-method](#response_model)
+* 3.2. [Handling of errors](#handling_of_errors)
 ##### 4. [Data base and migrations](#fourth_lesson)
+##### 5. [Registration and authorization users](#fivth_lesson)
+* 5.1. [Authentication Backend](#auth)
+* 5.2. [Cookie + JWT](#cookie+jwt)
+* 5.3. [UserManager](#usermanager)
+* 5.4. [Schemas](#schemas)
+* 5.5. [Routers](#routers)
+* 5.6. [Roles customization](#roles)
+* 5.7. [Registration, login and JWT-token inside cookie](#reg_log)
+* 5.8. [Protected endpoint](#protected_endpoint)
+##### 6. [Routers and file structure](routers_and_files)
 
 ## Lessons:
 
@@ -15,17 +31,23 @@
 
 Cd ***project_root*** 
 for e.g.:
-> cd /home/bogdan/PycharmProjects/FastAPI-course
+```commandline
+cd /home/bogdan/PycharmProjects/FastAPI-course
+```
 
 Create "filename".py (for e.g.: main.py)
 
 Write in terminal these commands:
 
-> python -m venv venv
-
-> source venv/bin/activate
-
-> pip install fastapi[all]
+```commandline
+python -m venv venv
+```
+```commandline
+source venv/bin/activate
+```
+```commandline
+pip install fastapi[all]
+```
 
 Write this code in file:
 
@@ -42,8 +64,9 @@ def hello():
 
 To start write this in terminal:
 
-> uvicorn main:app --reload
-
+```commandline
+uvicorn main:app --reload
+```
 <a name = "doc"></a>
 Site will run on localhost: http://127.0.0.1:8000
 
@@ -71,7 +94,7 @@ app = FastAPI(
 )
 ```
 Then rewrite our get-method to fetch user from DB by id(Primary Key).
-
+<a name = "by_id"></a>
 ```python
 @app.get("/users/{user_id}")    # GET-request
 def get_user(user_id):
@@ -84,6 +107,7 @@ fake_trades = [
     {"id": 2, "user_id": 1, "currency": "BTC", "side": "sell", "price": 125, "amount": 2.12}
 ]
 ```
+<a name = "query"></a>
 Write GET-method with query-parameters to return trades with pagination
 ```python
 @app.get("/trades")
@@ -93,6 +117,7 @@ def get_trades(limit: int = 10, offset: int = 10):
 * limit - trades limit
 * pagination - number of trades on one page
 
+<a name = "post"></a>
 Write combined POST-method to change username:
 ```python
 fake_users2 = [
@@ -225,6 +250,7 @@ class Trade(BaseModel):
     currency: str = Field(max_length=5)
     ...
 ```
+<a name = "response_model"></a>
 To validate our response to web-server we should set response model argument in @app.get() func:
 ```python
 class User(BaseModel):
@@ -264,6 +290,7 @@ class User(BaseModel):
     # Optional parameter for client if user for example don't have such a degree
     degree: Optional[List[Degree]] = [] 
 ```
+<a name = "handling_of_errors"></a>
 And finally if we want to handle errors and response them to client we need to add such a structure:
 ```python
 from fastapi.responses import JSONResponse
@@ -562,5 +589,437 @@ Find our db named "postgres" in pgadmin4 and choose alembic_version to do the ne
 Refresh tables and now we see 3 tables insted of 1. Well done!
 
 ![img_3](https://user-images.githubusercontent.com/65871712/236534669-466a06d6-3fdc-498b-a83f-3229a0c35f85.png)
+
+### 5. Registration and authorization users<a name="fivth_lesson"></a>
+
+Let's look at ways of keeping token:
+
+![img.png](img.png)
+
+All we need to know is:
+
+> User model - our database table
+>
+> SQLAchemy/Beanie - adapters
+
+> UserManager - class to managing users settings(to manage his data)
+
+> get_user_manager - function that returns UserManager
+
+Authentication:
+
+> Transport:
+> 
+> CookieTransport - Cookie storage is used to transport our token
+
+> Strategies:
+> JWTStrategy - token is kept inside our users browser
+
+Schemas:
+
+>
+> 
+
+Routers:
+
+>
+> 
+
+<a name = "auth"></a>
+Install fastapi-users:
+```commandline
+pip install 'fastapi-users[sqlalchemy]'
+```
+
+Install async driver:
+```commandline
+pip install asyncpg
+```
+
+Then we create /project/auth/database.py file and paste there this code:
+ 
+```python
+from typing import AsyncGenerator
+
+from fastapi import Depends
+from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
+
+from datetime import datetime
+
+from sqlalchemy import String, Boolean, Column, Integer, TIMESTAMP, ForeignKey
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+
+from config import DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME
+
+
+DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+Base: DeclarativeMeta = declarative_base()
+
+
+class User(SQLAlchemyBaseUserTable, Base):
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True
+    )
+    username: Mapped[str] = mapped_column(
+        String, nullable=False
+    )
+    registered_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP, default=datetime.utcnow()
+    )
+    role_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey(role.c.id)
+    )
+    email: Mapped[str] = mapped_column(
+        String(length=320), unique=True, index=True, nullable=False
+    )
+    hashed_password: Mapped[str] = mapped_column(
+        String(length=1024), nullable=False
+    )
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False
+    )
+    is_superuser: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    is_verified: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+
+
+engine = create_async_engine(DATABASE_URL)
+async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+
+async def create_db_and_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        yield session
+
+
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(session, User)
+```
+
+Delete our tables users and roles and change models.py file in a such way:
+
+```python
+from datetime import datetime
+
+import sqlalchemy
+from sqlalchemy import MetaData, Table, Column, Integer, String, TIMESTAMP, ForeignKey, JSON, Boolean
+
+
+metaData = MetaData()
+
+role = Table(
+    "role",
+    metaData,
+    Column("id", Integer, primary_key=True),
+    Column("name", String, nullable=False),
+    Column("permissions", JSON),
+)
+
+
+user = Table(
+    "user",
+    metaData,
+    Column("id", Integer, primary_key=True),
+    Column("email", String, nullable=False),
+    Column("username", String, nullable=False),
+    Column("hashed_password", String, nullable=False),
+    Column("registered_at", TIMESTAMP, default=datetime.utcnow()),
+    Column("role_id", Integer, ForeignKey(role.c.id)),
+    Column("is_active", Boolean, default=True, nullable=False),
+    Column("is_superuser", Boolean, default=False, nullable=False),
+    Column("is_verified", Boolean, default=False, nullable=False),
+)
+```
+
+Then do migrations:
+
+```commandline
+alembic revision --autogenerate -m "Initial"
+alembic upgrade head
+```
+
+After that we can delete these strokes from database.py file:
+
+```python
+async def create_db_and_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+```
+Because our tables has been created already!
+
+In FastAPI there is such an interesting function called Depends and we are already using it in our database.py.
+To understand why we need this func and why in follows main principe of programming
+DRY(Don't Repeat Yourself) we'll change our main.py file.
+
+```python
+from typing import Annotated
+
+from fastapi import FastAPI, Depends
+
+
+# entry point to our web-app
+app = FastAPI(
+    title="Trading App"  # title
+)
+
+
+async def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):
+    return {"q": q, "skip": skip, "limit": limit}
+
+
+@app.get("/items/")
+async def read_items(commons: Annotated[dict, Depends(common_parameters)]):
+    return commons
+
+
+@app.get("/users/")
+async def read_users(commons: Annotated[dict, Depends(common_parameters)]):
+    return commons
+```
+
+And 
+```commandline
+uvicorn main:app --reload
+```
+
+We'll see that parameters from the first func will be all other funcs where we set Depends func and give inside of it 
+as argument name of func from which we want to take our parameters.
+
+![img_1.png](img_1.png)
+
+<a name = "cookie+jwt"></a>
+To set cookie storage and JWT we have to create auth.py file in /project/auth/auth.py:
+
+```python
+from fastapi_users.authentication import CookieTransport
+from fastapi_users.authentication import JWTStrategy
+
+
+cookie_transport = CookieTransport(cookie_name="bonds ", cookie_max_age=3600)
+
+
+SECRET = 'SECRET'
+
+
+def get_jwt_strategy() -> JWTStrategy:
+    return JWTStrategy(secret=SECRET, lifetime_seconds=3600
+```
+<a name = "usermanager"></a>
+
+Create /project/auth/manage.py:
+
+```python
+import uuid
+from typing import Optional
+
+from fastapi import Depends, Request
+from fastapi_users import BaseUserManager, UUIDIDMixin
+
+from database import User, get_user_db
+
+SECRET = "SECRET"
+
+
+class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
+    reset_password_token_secret = SECRET
+    verification_token_secret = SECRET
+
+    async def on_after_register(self, user: User, request: Optional[Request] = None):
+        print(f"User {user.id} has registered.")
+
+
+async def get_user_manager(user_db=Depends(get_user_db)):
+    yield UserManager(user_db)
+```
+
+<a name = "schemas"></a>
+Create /project/auth/schemas.py:
+
+```python
+from typing import Optional
+
+from fastapi_users import schemas
+
+
+class UserRead(schemas.BaseUser[int]):
+    id: int
+    email: str
+    username: str
+    role_id: str
+    is_active: bool = True
+    is_superuser: bool = False
+    is_verified: bool = False
+
+    class Config:
+        orm_mode = True
+
+
+class UserCreate(schemas.BaseUserCreate):
+    username: str
+    email: str
+    password: str
+    role_id: int
+    is_active: Optional[bool] = True
+    is_superuser: Optional[bool] = False
+    is_verified: Optional[bool] = False
+
+
+```
+<a name = "routers"></a>
+Router is a variable that contains ednpoints.
+In main.py file add:
+
+```python
+from fastapi import FastAPI
+from fastapi_users import FastAPIUsers
+from auth.auth import auth_backend
+from auth.manage import get_user_manager
+from auth.schemas import UserRead, UserCreate
+from auth.database import User
+
+app = FastAPI(
+    title="Trading App"  # title
+)
+
+fastapi_users = FastAPIUsers[User, int](
+    get_user_manager,
+    [auth_backend],
+)
+
+app.include_router(
+    fastapi_users.get_auth_router(auth_backend),
+    prefix="/auth/jwt",
+    tags=["auth"],
+)
+app.include_router(
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["auth"],
+)
+```
+
+And in documentation we'll see:
+![img_2.png](img_2.png)
+
+<a name = "roles"></a>
+Next step is to create roles in role table inside pgadmin using query tools:
+```
+INSERT INTO role VALUES (1, 'user', null), (2, 'admin', null);
+```
+
+And we'll change our manage.py file to correct choosing of role when user was resistered:
+
+```python
+from typing import Optional
+
+from fastapi import Depends, Request
+from fastapi_users import BaseUserManager, IntegerIDMixin, models, exceptions, schemas
+
+from auth.database import User, get_user_db
+
+SECRET = "SECRET"
+
+
+class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
+    reset_password_token_secret = SECRET
+    verification_token_secret = SECRET
+
+    async def on_after_register(self, user: User, request: Optional[Request] = None):
+        print(f"User {user.id} has registered.")
+
+    async def create(
+        self,
+        user_create: schemas.UC,
+        safe: bool = False,
+        request: Optional[Request] = None,
+    ) -> models.UP:
+        """
+        Create a user in database.
+
+        Triggers the on_after_register handler on success.
+
+        :param user_create: The UserCreate model to create.
+        :param safe: If True, sensitive values like is_superuser or is_verified
+        will be ignored during the creation, defaults to False.
+        :param request: Optional FastAPI request that
+        triggered the operation, defaults to None.
+        :raises UserAlreadyExists: A user already exists with the same e-mail.
+        :return: A new user.
+        """
+        await self.validate_password(user_create.password, user_create)
+
+        existing_user = await self.user_db.get_by_email(user_create.email)
+        if existing_user is not None:
+            raise exceptions.UserAlreadyExists()
+
+        user_dict = (
+            user_create.create_update_dict()
+            if safe
+            else user_create.create_update_dict_superuser()
+        )
+        password = user_dict.pop("password")
+        user_dict["hashed_password"] = self.password_helper.hash(password)
+        user_dict["role_id"] = 1
+        
+        created_user = await self.user_db.create(user_dict)
+
+        await self.on_after_register(created_user, request)
+
+        return created_user
+
+
+async def get_user_manager(user_db=Depends(get_user_db)):
+    yield UserManager(user_db)
+```
+
+<a name = "reg_log"></a>
+Now when we are gonna try to register user we'll succesfully do this:
+
+![img_3.png](img_3.png)
+![img_4.png](img_4.png)
+![img_5.png](img_5.png)
+
+Now when we'll try to login we'll see such a cookie after successful login:
+![img_7.png](img_7.png)
+![img_6.png](img_6.png)
+
+<a name = "protected_endpoint""></a>
+We'll add inside of our main.py file two GET-methods:
+
+```python
+@app.get("/protected-route")
+def protected_route(user: User = Depends(current_user)):
+    return f"Hello, {user.username}"
+
+current_user = fastapi_users.current_user()
+
+@app.get("/unprotected-route")
+def unprotected_route():
+    return f"Hello, anonim"
+```
+
+And test them to see difference:
+
+![img_8.png](img_8.png)
+![img_9.png](img_9.png)
+
+But if we delete cookie we'll see:
+
+![img_10.png](img_10.png)
+![img_11.png](img_11.png)
+
+### 3. Routers and file structure.<a name = "routers_and_files"></a>
 
 ---
