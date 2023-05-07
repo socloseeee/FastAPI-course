@@ -13,6 +13,7 @@
 * 3.1. [Using of 'response_model' argument in GET-method](#response_model)
 * 3.2. [Handling of errors](#handling_of_errors)
 ##### 4. [Data base and migrations](#fourth_lesson)
+* 4.1 [Metadata](#metadata)
 ##### 5. [Registration and authorization users](#fivth_lesson)
 * 5.1. [Authentication Backend](#auth)
 * 5.2. [Cookie + JWT](#cookie+jwt)
@@ -180,8 +181,6 @@ def change_user_name(user_id: int, new_name: str):
     current_user["name"] = new_name
     return {"status": 200, "data": current_user}
 ```
-
----
 
 ### 3. Data validation<a name="third_lesson"></a>
 
@@ -483,6 +482,9 @@ users = Table(
 
 ```
 
+<a name = 'metadata'></a>
+> The metadata variable accumulates information about the created tables, after which they are processed by alembic and compared with the real situation in the database
+
 Initiate migrations using alembic:
 
 *All migrations will be saved in /project/migrations/versions*
@@ -556,7 +558,7 @@ config.set_section_option(section, "DB_HOST", DB_PASS)
 And change target_metadata variable to start work with our tables:
 
 ```python
-from models.models import metaData
+from auth.models import metaData
 
 ...
 
@@ -615,15 +617,6 @@ Authentication:
 > Strategies:
 > JWTStrategy - token is kept inside our users browser
 
-Schemas:
-
->
-> 
-
-Routers:
-
->
-> 
 
 <a name = "auth"></a>
 Install fastapi-users:
@@ -825,14 +818,14 @@ import uuid
 from typing import Optional
 
 from fastapi import Depends, Request
-from fastapi_users import BaseUserManager, UUIDIDMixin
+from fastapi_users import BaseUserManager, IntegerIDMixin
 
 from database import User, get_user_db
 
 SECRET = "SECRET"
 
 
-class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
+class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
 
@@ -884,10 +877,10 @@ In main.py file add:
 ```python
 from fastapi import FastAPI
 from fastapi_users import FastAPIUsers
-from auth.auth import auth_backend
-from auth.manage import get_user_manager
-from auth.schemas import UserRead, UserCreate
-from auth.database import User
+from src.auth.base_config import auth_backend
+from src.auth.manager import get_user_manager
+from src.auth.schemas import UserRead, UserCreate
+from database import User
 
 app = FastAPI(
     title="Trading App"  # title
@@ -927,7 +920,7 @@ from typing import Optional
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, IntegerIDMixin, models, exceptions, schemas
 
-from auth.database import User, get_user_db
+from database import User, get_user_db
 
 SECRET = "SECRET"
 
@@ -940,10 +933,10 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         print(f"User {user.id} has registered.")
 
     async def create(
-        self,
-        user_create: schemas.UC,
-        safe: bool = False,
-        request: Optional[Request] = None,
+            self,
+            user_create: schemas.UC,
+            safe: bool = False,
+            request: Optional[Request] = None,
     ) -> models.UP:
         """
         Create a user in database.
@@ -972,7 +965,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         password = user_dict.pop("password")
         user_dict["hashed_password"] = self.password_helper.hash(password)
         user_dict["role_id"] = 1
-        
+
         created_user = await self.user_db.create(user_dict)
 
         await self.on_after_register(created_user, request)
@@ -1021,5 +1014,12 @@ But if we delete cookie we'll see:
 ![img_11](https://user-images.githubusercontent.com/65871712/236631079-5ff78022-0791-44c0-bc33-4a66b2c4301f.png)
 
 ### 6. Routers and file structure.<a name = "routers_and_files"></a>
+![img.png](img.png)
+
+Best practice:
+
+![img_1.png](img_1.png)
+
+Refactoring our [code]()
 
 ---
