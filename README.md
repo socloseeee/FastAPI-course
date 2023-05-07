@@ -1024,11 +1024,11 @@ But if we delete cookie we'll see:
 ![img_11](https://user-images.githubusercontent.com/65871712/236631079-5ff78022-0791-44c0-bc33-4a66b2c4301f.png)
 
 ### 6. Routers and file structure.<a name = "routers_and_files"></a>
-![img.png](img.png)
+![img](https://user-images.githubusercontent.com/65871712/236678030-4066f006-958e-4579-a3dc-1333c32fd7bf.png)
 
 Best practice:
 
-![img_1.png](img_1.png)
+![img_1](https://user-images.githubusercontent.com/65871712/236678035-30bbc687-e083-49ed-a4f9-c9bdd8be61c8.png)
 
 Refactoring our [code](https://github.com/socloseeee/FastAPI-course/tree/b0ed65545297c2938137c9cf964a04d842cab860)
 
