@@ -13,7 +13,11 @@
 * 3.1. [Using of 'response_model' argument in GET-method](#response_model)
 * 3.2. [Handling of errors](#handling_of_errors)
 ##### 4. [Data base and migrations](#fourth_lesson)
-* 4.1 [Metadata](#metadata)
+* 4.1. [Installation postgresql and pgadmin4](#installation)
+* 4.2. [Configure server via postgresql and pgadmin4](#conf_pg)
+* 4.3. [Create models](#create_models)
+* 4.4. [Metadata](#metadata)
+* 4.5. [Migrations and connect to database in FastAPI project.](#migrations_and_connect)
 ##### 5. [Registration and authorization users](#fivth_lesson)
 * 5.1. [Authentication Backend](#auth)
 * 5.2. [Cookie + JWT](#cookie+jwt)
@@ -23,7 +27,10 @@
 * 5.6. [Roles customization](#roles)
 * 5.7. [Registration, login and JWT-token inside cookie](#reg_log)
 * 5.8. [Protected endpoint](#protected_endpoint)
-##### 6. [Routers and file structure](routers_and_files)
+##### 6. [Routers and file structure](#routers_and_files)
+* 6.1. [Router. What is it?](#router)
+* 6.2. [SQL-injection and ORM](#sql_ORM)
+##### 7. [Project design](#project_design)
 
 ## Lessons:
 
@@ -383,8 +390,8 @@ def add_trade(trades: List[Trade]):
     fake_trades.extend(trades)
     return {"status": 200, "data": fake_trades}
 ```
-### 4. <a name="fourth_lesson"></a>
-
+### 4. Database and migrations. <a name="fourth_lesson"></a>
+<a name = "installation"></a>
 First install sqlalchemy lib to work with sql db:
 
 ```commandline
@@ -429,7 +436,7 @@ Install for both desktop and web modes:
 ```commandline
 sudo apt install pgadmin4
 ```
-
+<a name = "conf_pg"></a>
 To add database to pgadmin we have to create it via terminal
 
 ```commandline
@@ -448,6 +455,7 @@ Password: "postgres":
 
 ![img_1](https://user-images.githubusercontent.com/65871712/236534750-da932863-4b69-464b-80b5-3aae0d3f24b6.png)
 
+<a name = "create_models"></a>
 Create directory and file *project*/models/models.py:
 
 ```python
@@ -484,6 +492,8 @@ users = Table(
 
 <a name = 'metadata'></a>
 > The metadata variable accumulates information about the created tables, after which they are processed by alembic and compared with the real situation in the database
+
+<a name="migrations_and_connect"></a>
 
 Initiate migrations using alembic:
 
@@ -1020,6 +1030,88 @@ Best practice:
 
 ![img_1.png](img_1.png)
 
-Refactoring our [code]()
+Refactoring our [code](https://github.com/socloseeee/FastAPI-course/tree/b0ed65545297c2938137c9cf964a04d842cab860)
+
+<a name = "router"></a>
+Router includes group of endpoints:
+
+```python
+from fastapi import APIRouter, Depends
+from sqlalchemy import select, insert
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database import get_async_session
+from operations.models import operation
+from operations.schemas import OperationCreate
+
+router = APIRouter(
+    prefix="/operations",
+    tags=["Operation"]
+)
+
+
+@router.get("/")
+async def get_specific_operations(operation_type: str, session: AsyncSession = Depends(get_async_session)):
+    query = select(operation).where(operation.c.type == operation_type)
+    result = await session.execute(query)
+    return result.all()
+
+
+@router.post("/")
+async def add_specific_operations(new_operation: OperationCreate, session: AsyncSession = Depends(get_async_session)):
+    stmt = insert(operation).values(**new_operation.dict())
+    await session.execute(stmt)
+    await session.commit()
+    return {"status": "success"}
+```
+
+And then imports into main.py file:
+
+```python
+from fastapi import FastAPI
+from operations.router import router as router_operation
+
+# entry point to our web-app
+app = FastAPI(
+    title="Trading App"  # title
+)
+
+...
+
+app.include_router(router_operation)
+
+```
+
+<a name = "sql_ORM"></a>
+To avoid SQL-Injection we have to write not-RAW SQL-querys using ORM, for example:
+
+```python
+app.include_router(
+    fastapi_users.get_auth_router(auth_backend),
+    prefix="/auth",
+    tags=["Auth"],
+)
+
+app.include_router(
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["Auth"],
+)
+```
+
+Why do we need commit in main.py files post-method?
+
+```python
+@router.post("/")
+async def add_specific_operations(new_operation: OperationCreate, session: AsyncSession = Depends(get_async_session)):
+    stmt = insert(operation).values(**new_operation.dict())
+    await session.execute(stmt)
+    await session.commit()
+    return {"status": "success"}
+```
+
+In order to update the information simultaneously in several tables, or nothing was recorded. By the atomicity property.
+<a name = "project_design"></a>
+### 7. Project design.
 
 ---
